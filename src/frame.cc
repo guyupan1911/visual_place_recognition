@@ -14,7 +14,7 @@ std::string type, int feature_nums): id_(frame_id), pose_(pose) {
   cv::Mat image = cv::imread(path2im, cv::IMREAD_GRAYSCALE);
   // cv::equalizeHist(image, image_);
   image_ = image.clone();
-  mask_ = cv::imread("mask1.png", cv::IMREAD_GRAYSCALE);
+  mask_ = cv::imread("mask.png", cv::IMREAD_GRAYSCALE);
   // detect feature and compute descriptor
   cv::Ptr<cv::Feature2D> feature_detector;
   if (type == "ORB")
@@ -26,15 +26,16 @@ std::string type, int feature_nums): id_(frame_id), pose_(pose) {
   else if (type == "ORB2") {
     ORB_SLAM2::ORBextractor feature_detector(feature_nums, 1.2, 8, 20, 7);
     feature_detector(image_, mask_, keypoints_, descriptors_);
-    // std::cout << "key points size: " << keypoints_.size() << std::endl;
     cv::drawKeypoints(image_, keypoints_, image_);
-    // cv::imshow("image_with", image_);
-    // cv::waitKey(0);
+    cv::cvtColor(image_, image_, cv::COLOR_BGR2GRAY);
+    cv::imshow("image_with_keypoints", image_);
+    cv::waitKey(5);
     return;
   }
 
   feature_detector->detectAndCompute(image_, mask_, keypoints_, descriptors_);
   cv::drawKeypoints(image_, keypoints_, image_);
-  // cv::imshow("image_with", im_);
-  // cv::waitKey(5);
+  cv::cvtColor(image_, image_, cv::COLOR_BGR2GRAY);
+  // cv::imwrite("ORB2.png", image_);
+  // cv::imshow("image_with_keypoints", image_);
 }

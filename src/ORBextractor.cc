@@ -1049,12 +1049,16 @@ void ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPo
     Mat image = _image.getMat();
     assert(image.type() == CV_8UC1 );
 
+    Mat mask = _mask.getMat();
+
     // Pre-compute the scale pyramid
     ComputePyramid(image);
 
     vector < vector<KeyPoint> > allKeypoints;
     ComputeKeyPointsOctTree(allKeypoints);
     //ComputeKeyPointsOld(allKeypoints);
+
+    
 
     Mat descriptors;
 
@@ -1099,6 +1103,16 @@ void ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPo
                  keypointEnd = keypoints.end(); keypoint != keypointEnd; ++keypoint)
                 keypoint->pt *= scale;
         }
+        
+        //  use mask to filter points
+        // std::vector<cv::KeyPoint> valid_keypoints;
+        // for (int i = 0; i < keypoints.size(); ++i) {
+        //     if (mask.at<uchar>(keypoints[i].pt) == 0)
+        //         continue; 
+        //     valid_keypoints.push_back(keypoints[i]);
+        // }
+        // keypoints = valid_keypoints;
+
         // And add the keypoints to the output
         _keypoints.insert(_keypoints.end(), keypoints.begin(), keypoints.end());
     }

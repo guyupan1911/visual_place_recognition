@@ -8,54 +8,52 @@
 
 #include "frame.h"
 #include "io.h"
+#include "bowMapper.h"
+#include "bowLocalizer.h"
 
 
-void train(int image_step, std::string feature_type, int feature_nums) {
+void train() {
   // read images
-  std::map<uint64_t, std::pair<std::string, cv::Vec3d>> train_images =
-    readImagesAndGNSS("../dataset/train/recording_2021-02-25_13-39-06_images");
+  std::string path_to_dir_train =
+    "../dataset/train/recording_2021-02-25_13-39-06_images";
+  DataIO train_data(path_to_dir_train);
 
-  std::map<int64_t, Frame> train_frames;  // map image id to frame
+  std::string path_to_dir_test =
+    "../dataset/test/recording_2020-12-22_12-04-35_images";
+  DataIO test_data(path_to_dir_test);
 
-  std::vector<cv::Mat> vDes_train;
+  BowMapper mapper;
+  mapper.mapping(train_data.get_add_data());
 
-  int i = 0;
-  for (auto& elem : train_images) {
-    if (i% image_step != 0)
-      continue;
-    Frame frame(elem.first, elem.second.first, elem.second.second,
-                feature_type, feature_nums);
-    train_frames.insert(std::make_pair(elem.first, frame));
-    vDes_train.push_back(frame.getDes());
+  BowLocalizer localizer;
+
+  for (auto& elem : test_data.get_add_data()) {
+    localizer.relocalize(elem);
   }
+}
 
-  const int k = 10;
-  const int L = 4;
-  const DBoW3::WeightingType weight = DBoW3::TF_IDF;
-  const DBoW3::ScoringType score = DBoW3::L1_NORM;
+void trainAutoX() {
+  std::string path_to_dir_train =
+  "/home/yuxuanhuang/projects/mapping-experimental/data/bag/2022-08-25/top_view";
+  DataIO train_data;
+  train_data.ReadAutoX(path_to_dir_train, 2600, 5000, 2);
 
-  DBoW3::Vocabulary voc(k, L, weight, score);
+  BowMapper mapper;
+  mapper.mapping(train_data.get_add_data());
 
-  std::cout << "Creating a small " << k << "^" << L << " vocabulary..."
-  << std::endl;
-  voc.create(vDes_train);
-  std::cout << "... done!" << std::endl;
+  // std::string path_to_dir_test =
+  // "/home/yuxuanhuang/projects/mapping-experimental/data/bag/2022-08-25/top_view";
+  // DataIO test_data;
+  // test_data.ReadAutoX(path_to_dir_test, 2600, 5000, 3);
 
-  std::cout << std::endl << "Saving vocabulary..." << std::endl;
-  std::string path_to_voc = feature_type + ".yml.gz";
-  voc.save(path_to_voc);
-  std::cout << "Done" << std::endl;
+  // BowLocalizer localizer;
+
+  // for (auto& elem : test_data.get_add_data()) {
+  //   localizer.relocalize(elem);
+  // }
 }
 
 int main(int argc, char** argv) {
-  if (argc != 4) {
-    std::cerr << "usage: ./train_voc image_step feature_type feature_nums"
-    << std::endl;
-  }
-
-  int image_step = std::stoi(argv[1]);
-  int feature_nums = std::stoi(argv[3]);
-  std::string feature_type = argv[2];
-
-  train(image_step, feature_type, feature_nums);
+  train();
+  // trainAutoX();
 }

@@ -23,7 +23,7 @@ void query(int image_step, std::string feature_type, int feature_nums,
   for (auto& elem : train_images) {
     if (i % image_step != 0)
       continue;
-    Frame frame(elem.first, elem.second.first, elem.second.second, "ORB",
+    Frame frame(elem.first, elem.second.first, elem.second.second, feature_type,
       feature_nums);
     train_frames.insert(std::make_pair(elem.first, frame));
     vDes_train.push_back(frame.getDes());
@@ -58,7 +58,7 @@ void query(int image_step, std::string feature_type, int feature_nums,
   for (auto& elem : test_images) {
     if (i2++ % 5 !=0)
         continue;
-    Frame frame(elem.first, elem.second.first, elem.second.second, "ORB",
+    Frame frame(elem.first, elem.second.first, elem.second.second, feature_type,
                 feature_nums);
     test_frames.insert(std::make_pair(elem.first, frame));
     vDes_test.push_back(frame.getDes());
@@ -88,7 +88,7 @@ void query(int image_step, std::string feature_type, int feature_nums,
       cv::Vec2d txy(dis[0], dis[1]);
       cv::Vec2d tz(dis[2]);
 
-      if (0) {
+      if (1) {
         std::cout << "candidate: " << i << " score: " << ret[i].Score <<
         std::endl;
         cv::BFMatcher matcher(cv::NORM_HAMMING, true);
