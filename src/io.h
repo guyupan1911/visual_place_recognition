@@ -19,9 +19,18 @@
 #include <iostream>
 #include <utility>
 
+#include <gflags/gflags.h>
+#include <boost/filesystem.hpp>
+
 #include "opencv2/opencv.hpp"
 
+
 #include "kdtree/KDTree.hpp"
+
+using namespace boost::filesystem;
+
+DECLARE_string(autox_train_images_dir);
+DECLARE_string(autox_test_images_dir);
 
 std::unordered_map<uint64_t, cv::Vec3d> readGNSSPoses(std::string path2Dir);
 
@@ -33,12 +42,12 @@ std::map<uint64_t, std::pair<std::string, cv::Vec3d>> readImagesAndGNSS(
 
 struct MetaData {
   MetaData() {}
-  MetaData(uint64_t id, std::string path, cv::Vec4d pose):
+  MetaData(uint64_t id, std::string path, cv::Vec3d pose):
     image_id(id), path_to_image(path), gnss_pose(pose) {}
 
   uint64_t image_id;
   std::string path_to_image;
-  cv::Vec4d gnss_pose;
+  cv::Vec3d gnss_pose;
 };
 
 class DataIO {
@@ -58,14 +67,14 @@ class DataIO {
     return *this;
   }
 
-  MetaData find_closest(const cv::Vec4d& pose);
+  MetaData find_closest(const cv::Vec3d& pose);
   MetaData findByFrameId(uint64_t frame_id);
   
-  std::vector<MetaData> get_add_data() {
+  std::vector<MetaData> get_all_data() {
     return all_data_;
   }
 
-  void ReadAutoX(const std::string &path_to_dir, int start, int end, int step);
+  void ReadAutoX(const std::string &path_to_dir);
   void Clear();
 
  private:
@@ -75,7 +84,7 @@ class DataIO {
   void create_kdtree();
 
  private:
-  std::unordered_map<uint64_t, cv::Vec4d> id_gnss_;
+  std::unordered_map<uint64_t, cv::Vec3d> id_gnss_;
   std::unordered_map<uint64_t, std::string> id_image_;
 
   std::vector<MetaData> all_data_;

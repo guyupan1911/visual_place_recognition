@@ -13,6 +13,7 @@
 #include "io.h"
 #include "frame.h"
 
+#include "tracker/tracking.h"
 
 
 class BowMapper {
@@ -28,6 +29,7 @@ class BowMapper {
  private:
   std::vector<Frame> vFrames_;
   std::unordered_map<DBoW3::EntryId, uint64_t> databaseID_to_FrameID_;
+  std::shared_ptr<Tracking> tracker_;
 };
 
 

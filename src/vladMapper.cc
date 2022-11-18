@@ -2,9 +2,9 @@
 
 VladMapper::VladMapper() {
   // load train data
-  std::string path_to_dir =
-    "../dataset/train/recording_2021-02-25_13-39-06_images";
-  trainData_ = DataIO(path_to_dir);
+  // std::string path_to_dir =
+  //   "../dataset/train/recording_2021-02-25_13-39-06_images";
+  trainData_.ReadAutoX(FLAGS_autox_train_images_dir);
 
   relocalize_result_ = cv::Mat::zeros(420, 2*800, CV_8UC3);
 
@@ -87,7 +87,7 @@ void VladMapper::relocalize(const MetaData& data) {
     FeatureMatcher matcher;
     std::vector<cv::DMatch> matches;
     matcher.matchByBruteForce(descriptor_test, keypoints_test, descriptor_train, 
-      keypoints_train, matches, image_test.size(), true);
+      keypoints_train, matches, image_test.size(), false);
 
     if (cv::norm(txy, cv::NORM_L2) < 10.0 && cv::norm(tz, cv::NORM_L2) < 3.0 && (matches.size()>18 || i==0)) {
       success++;

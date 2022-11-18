@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package slam;
+
+message Pose {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message cvMat {
+  int32 rows = 1;
+  int32 cols = 2;
+  int32 elt_type = 3;
+  int32 elt_size = 4;
+  bytes mat_data = 5;
+}
+
+message Frame {
+  int32 id = 1;
+  string path_to_image = 2;
+  cvMat desc = 3;
+  map<uint32, double> bow_vector = 4;
+  Pose pose = 5; 
+}
+
+message Frames {
+  repeated Frame elems = 1;
+}

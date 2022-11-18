@@ -18,12 +18,20 @@ class BowLocalizer {
   BowLocalizer();
   void load();
   void relocalize(const MetaData& data);
+  void relocalize_islands(const MetaData& data);
+
 
  private:
   void readEntry2Frame(std::string filename);
+  void readConnection(std::string filename);
+
 
  private:
   std::unordered_map<DBoW3::EntryId, uint64_t> databaseID_to_FrameID_;
+  std::unordered_map<DBoW3::EntryId, uint64_t> FrameID_to_databaseID_;
+
+  std::map<DBoW3::EntryId, std::vector<DBoW3::EntryId>> connections_;
+  
   DBoW3::Database* pDataBase_;
   DataIO trainData_;
   cv::Mat relocalize_result_;

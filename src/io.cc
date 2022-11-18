@@ -9,6 +9,30 @@
 
 #include "io.h"
 
+
+DEFINE_string(autox_train_images_dir,
+  "/home/yuxuanhuang/projects/mapping-experimental/data/bag/train_images",
+  "path to autox train images");
+DEFINE_string(autox_test_images_dir,
+  "/home/yuxuanhuang/projects/mapping-experimental/data/bag/test_images",
+  "path to autox test images");
+
+
+void getFilenames(const std::string& directory,
+                  std::vector<std::string>* filenames) {
+  filenames->clear();
+  path dir(directory);
+
+  // Retrieving, sorting and filtering filenames.
+  std::vector<path> entries;
+  copy(directory_iterator(dir), directory_iterator(), back_inserter(entries));
+  sort(entries.begin(), entries.end());
+  for (int i=0; i<entries.size(); ++i) {
+    std::string ext = directory + std::to_string(i) + ".png";
+    filenames->push_back(ext);
+  }
+}
+
 std::unordered_map<uint64_t, cv::Vec3d> GNSS_ret;
 std::map<uint64_t, std::pair<std::string, cv::Vec3d>> image_ret;
 
@@ -119,11 +143,11 @@ void DataIO::readGnss(const std::string& path_to_dir) {
     tx = stod(vWords[1]);
     ty = stod(vWords[2]);
     tz = stod(vWords[3]);
-    yaw = stod(vWords[4]);
+    // yaw = stod(vWords[4]);
 
     // cout << "frame_id: " << frame_id << " tx: " << tx << " ty: " << ty
     // << " tz: " << tz << endl;
-    cv::Vec4d pose(tx, ty, tz, yaw);
+    cv::Vec3d pose(tx, ty, tz);
     id_gnss_.insert(std::make_pair(frame_id, pose));
   }
   std::cout << "gnss poses size: " << id_gnss_.size() << std::endl;
@@ -147,7 +171,7 @@ void DataIO::readImage(const std::string& path_to_dir) {
     std::to_string(frame_id) + ".png";
 
     if (id_gnss_.find(frame_id) != id_gnss_.end()) {
-      cv::Vec4d pose = id_gnss_.find(frame_id)->second;
+      cv::Vec3d pose = id_gnss_.find(frame_id)->second;
       id_image_.insert(make_pair(frame_id, path2image));
       all_data_.push_back(MetaData{frame_id, path2image, pose});
       // cv::Mat image = cv::imread(path2image, cv::IMREAD_GRAYSCALE);
@@ -169,7 +193,7 @@ void DataIO::create_kdtree() {
   pKDtree_ = new KDTree(all_poses);
 }
 
-MetaData DataIO::find_closest(const cv::Vec4d& pose) {
+MetaData DataIO::find_closest(const cv::Vec3d& pose) {
   point_t pt{pose[0], pose[1], pose[2]};
   unsigned int nearest_index = pKDtree_->nearest_index(pt);
   return all_data_[nearest_index];
@@ -189,14 +213,30 @@ void DataIO::Clear() {
   all_data_.clear();
 }
 
-void DataIO::ReadAutoX(const std::string &path_to_dir, int start, int end,
-  int step) {
+void DataIO::ReadAutoX(const std::string &path_to_dir) {
   Clear();
-  // read 
-  for (int i = start; i < end; ++i) {
-    if (i % step == 0) {
-      std::string path_to_image = path_to_dir + "/" + std::to_string(i) + ".png";
-      all_data_.push_back(MetaData{i, path_to_image, cv::Vec4d()});
-    }
+  // read
+  std::string path2Time = path_to_dir + "/image_and_pose.txt";
+  std::ifstream fin(path2Time.c_str());
+
+  std::string line;
+  while (getline(fin, line)) {
+    std::stringstream ss(line);
+    uint64_t frame_id;
+    double x, y, z;
+    ss >> frame_id >> x >> y >> z;
+    
+    std::string path2image = path_to_dir + "/" + std::to_string(frame_id) + ".png";
+
+    // std::cout << "image path: " << path2image
+    //   << " x: " << x << " y: " << y << " z: " << z << std::endl;
+
+    id_image_.insert(make_pair(frame_id, path2image));
+    all_data_.push_back(MetaData{frame_id, path2image, cv::Vec3d{x,y,z}});
+    // cv::Mat image = cv::imread(path2image, cv::IMREAD_GRAYSCALE);
+    // cv::imshow("1", image);
+    // cv::waitKey(5); 
   }
+  create_kdtree();
+  std::cout << "total data " << all_data_.size() << " images" << std::endl;
 }

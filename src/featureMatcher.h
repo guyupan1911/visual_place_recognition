@@ -8,10 +8,12 @@
 
 class FeatureMatcher {
  public:
+  enum { GMS = 1, FM_RANSAC = 2 };
+
   void matchByBruteForce(
     const cv::Mat &descriptors1, const std::vector<cv::KeyPoint> &keypoints1,
     const cv::Mat &descriptors2, const std::vector<cv::KeyPoint> &keypoints2,
-    std::vector<cv::DMatch> &matches, cv::Size image_size, bool useGMS = true);
+    std::vector<cv::DMatch> &matches, cv::Size image_size, int method);
 
 
 };

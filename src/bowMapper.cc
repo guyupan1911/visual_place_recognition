@@ -3,9 +3,12 @@
 void BowMapper::mapping(const std::vector<MetaData>& mapping_data) {
   std::ifstream fin("voc.yml.gz");
   if (!fin) {
+    tracker_.reset(new Tracking());
     std::cout << "train a vocabulary" << std::endl;
     trainVocabulary(mapping_data);
   }
+
+  return;
 
   std::ifstream fin2, fin3;
   fin2.open("db.yml.gz");
@@ -32,6 +35,7 @@ void BowMapper::trainVocabulary(const std::vector<MetaData>& mapping_data) {
      feature_size);
     vFrames_.push_back(frame);
     vDescriptors.push_back(frame.getDes());
+    // tracker_->track(elem.path_to_image, pose, elem.image_id);
   }
 
   // train vocabulary
@@ -50,10 +54,14 @@ void BowMapper::trainVocabulary(const std::vector<MetaData>& mapping_data) {
   std::cout << std::endl << "Saving vocabulary..." << std::endl;
   std::string path_to_voc = "voc.yml.gz";
   voc.save(path_to_voc);
+
+  tracker_->save("connection.bin");
+
   std::cout << "Done" << std::endl;
 }
 
 void BowMapper::createDataBase(const std::vector<MetaData>& mapping_data) {
+  std::cout << "createDataBase" << std::endl;
   // load config file
   cv::FileStorage fs_read("config.yaml", cv::FileStorage::READ);
   std::string feature_type;
@@ -64,6 +72,8 @@ void BowMapper::createDataBase(const std::vector<MetaData>& mapping_data) {
   // load the vocabulary from disk
   std::string path_to_voc = "voc.yml.gz";
   DBoW3::Vocabulary voc(path_to_voc);
+
+  std::cout << "load voc done" << std::endl;
 
   DBoW3::Database db(voc, false, 0);  // false = do not use direct index
   // (so ignore the last param)

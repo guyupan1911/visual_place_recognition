@@ -9,7 +9,7 @@ int main() {
   DataIO train_data(path_to_dir_train);
   DataIO test_data(path_to_dir_test);
 
-  for (auto& elem : test_data.get_add_data()) {
+  for (auto& elem : test_data.get_all_data()) {
     cv::Mat test_image = cv::imread(elem.path_to_image);
     MetaData cloest_train_data = train_data.find_closest(elem.gnss_pose);
     cv::Mat train_image = cv::imread(cloest_train_data.path_to_image);

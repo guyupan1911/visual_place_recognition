@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package Map;
+
+import "visual_place_recognition/common/proto/gnss_pose.proto";
+import "visual_place_recognition/common/proto/image.proto";
+
+message Frame {
+  string url_to_raw_image = 1;
+  Sensor.Image resized_image = 2;
+  uint64 id = 3;
+  Sensor.GnssPose gnss_pose = 4;
+}
