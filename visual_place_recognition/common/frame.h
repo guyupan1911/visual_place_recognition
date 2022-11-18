@@ -6,13 +6,13 @@
 
 class Frame {
  public:
-  Frame(const uint64_t &id,
-        const cv::Mat &raw_image,
+  Frame(const std::string &path, const uint64_t &id,
         const cv::Vec3d &gnss_pose) : 
-        id_(id), raw_image_(raw_image), gnss_pose_(gnss_pose) {}
+        url_to_raw_image_(path) , id_(id), gnss_pose_(gnss_pose) {}
 
  public:
+  std::string url_to_raw_image_;
   uint64_t id_;
-  cv::Mat raw_image_;
+  cv::Mat resized_image_;
   cv::Vec3d gnss_pose_;
 };

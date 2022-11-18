@@ -19,18 +19,14 @@ void dumpAutoX(const std::string &path, std::vector<Frame> &vFrames) {
     double x, y, z;
     ss >> frame_id >> x >> y >> z;
     std::string path2image = path + "/" + std::to_string(frame_id) + ".png";
-    cv::Mat raw_image = cv::imread(path2image, cv::IMREAD_UNCHANGED);
     uint64_t id = vFrames.size();
     cv::Vec3d gnss_pose = {x, y, z};
-    vFrames.push_back(Frame(id, raw_image, gnss_pose));
+    vFrames.push_back(Frame(path2image, id, gnss_pose));
     
-    if(1) {
+    if(0) {
       std::cout << "x: " << x << " y: " << y << " z: " << z << std::endl;
-      cv::namedWindow("raw_image", cv::WINDOW_NORMAL);
-      cv::imshow("raw_image", raw_image);
-      cv::waitKey(5); 
     }
   }
 
-  std::cout << "total: " << vFrames.size() << " Frames" << std::endl;
+  // std::cout << "total: " << vFrames.size() << " Frames" << std::endl;
 }

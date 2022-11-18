@@ -5,6 +5,7 @@
 #include "opencv4/opencv2/opencv.hpp"
 
 #include "visual_place_recognition/common/frame.h"
+#include "visual_place_recognition/common/proto/frame.pb.h"
 
 class SeqSlamLocalization{
  public:
