@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(visual_place_recognition)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-add_definitions("$ENV{CXXFLAGS} -o0 -Wall -g2 -ggdb")
+add_definitions("$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")
 
 set(OpenCV_DIR "/home/yuxuanhuang/projects/thirdParty/opencv/build")
 find_package(OpenCV REQUIRED)

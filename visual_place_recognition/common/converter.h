@@ -2,7 +2,6 @@
 
 #include "visual_place_recognition/common/proto/image.pb.h"
 #include "visual_place_recognition/common/proto/frame.pb.h"
-
 #include "visual_place_recognition/common/frame.h"
 
 class Converter{
@@ -12,4 +11,7 @@ class Converter{
   static Sensor::Image cvMatToImageMsg(const cv::Mat &mat);
 
   static Map::Frame FrameToFrameMsg(const Frame &frame);
+
+  static Frame FrameMsgToFrame(const Map::Frame &frame_msg);
+
 };
