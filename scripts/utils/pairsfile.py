@@ -74,9 +74,8 @@ def readImagePairs(query, mapping, image_pairs_file):
                 match_pose = map_trajectories.intermediate_pose(mactch_time, "car", 2e8)
                 if match_pose is None:
                     del reduced_image_pairs[query]
-                    break
-                distance = np.linalg.norm(query_pose.t - match_pose.t)
-                reduced_image_pairs.setdefault(query, []).append((match[0], match[1], distance))
+                distance = np.absolute(query_pose.t - match_pose.t)
+                reduced_image_pairs.setdefault(query, []).append([match[0], match[1], distance])
 
         last_query_pose = query_pose
     

@@ -1,2 +1,3 @@
 data/
 thirdParty/
+**/__pycache__
