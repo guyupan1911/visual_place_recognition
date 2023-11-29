@@ -22,9 +22,6 @@ logger = logging.getLogger('visualize image pairs')
 def statistics_analysis(image_pairs):
     N = len(image_pairs)
     min_distances = np.zeros((N))
-    max_distances = np.zeros((N))
-    median_distances = np.zeros((N))
-    mean_distances = np.zeros((N))
     top1_distances = np.zeros((N))
     top1_distances_z = np.zeros((N))
 
@@ -34,33 +31,24 @@ def statistics_analysis(image_pairs):
         distances = np.zeros((len(matches)))
         distances_z = np.zeros((len(matches)))
 
-        n_feature_matches = np.zeros((len(matches)))
         for j, match in enumerate(matches):
             distances[j] = np.linalg.norm(match[2][0], match[2][1])
             distances_z[j] = match[2][2]
-            n_feature_matches[j] = match[1]
-        max_distances[i] = np.max(distances)
+
         min_distances[i] = np.min(distances)
-        mean_distances[i] = np.mean(distances)
-        median_distances[i] = np.median(distances)
         top1_distances[i] = distances[0]
         top1_distances_z[i] = distances_z[0]
         
-        # print(f'n_feature_matches {n_feature_matches}')
-        top1_reranking[i] = distances[np.argmax(n_feature_matches)]
-        
-    # print(f'max_distances: {max_distances}')
     # print(f'min_distances: {min_distances}')
-    # print(f'mean_distances: {mean_distances}')
-    # print(f'median_distances: {median_distances}')
-    
+    # print(f'top1_distances: {top1_distances}')
+
 
     # plot
     # plt.plot(max_distances, label='max_distances')
-    plt.plot(min_distances, label='min_distances')
+    # plt.plot(min_distances, label='min_distances')
     # plt.plot(mean_distances, label='mean_distances')
     # plt.plot(median_distances, label='median_distances')
-    plt.plot(top1_distances, label='top1_distances')
+    plt.plot(top1_distances, label='top1_distances_xy')
     plt.plot(top1_distances_z, label='top1_distances_z')
     # plt.plot(top1_reranking, label='top1_rerank')
 
@@ -81,7 +69,7 @@ def readImage(image_path, size, score=0.0, distance=0.0):
     # Line thickness of 2 px 
     thickness = 2
     # Using cv2.putText() method
-    image = cv2.putText(image, f'n_matches: {score}, distance: {distance}', org, font, fontScale, color, thickness, cv2.LINE_AA) 
+    image = cv2.putText(image, f'dxy: {score:.2f}, dz: {distance:.2f}', org, font, fontScale, color, thickness, cv2.LINE_AA) 
     return image
 
 def visualize_image_pairs(args):
@@ -96,8 +84,8 @@ def visualize_image_pairs(args):
         for i in range(len(matches)):
             distances[i] = np.sqrt(matches[i][2][0]**2 + matches[i][2][1]**2)
             distances_z[i] = matches[i][2][2]
-        distances = np.logical_and(distances < 10.0, distances_z < 2.0) 
-        if distances[0:args.topk].any():
+        success = np.logical_and(distances < 10.0, distances_z < 2.0) 
+        if success[0:args.topk].any():
             nSuccess += 1
         else:
             nFailure += 1
@@ -111,7 +99,7 @@ def visualize_image_pairs(args):
                     #     visualize_feature_matches(os.path.join('images', os.path.basename(query)), args.query, \
                     #                                 os.path.join('images', os.path.basename(matches[i][0])), args.mapping)
                     # print(f'image_pairs[query][i][1] {image_pairs[query][i][1]}')
-                    im_match = readImage(matches[i][0], (640, 640), matches[i][2][2], matches[i][2][0])
+                    im_match = readImage(matches[i][0], (640, 640), distances[i], distances_z[i])
                     if i < len(matches) / 2:
                         row_1.append(im_match)
                     else:
@@ -123,7 +111,7 @@ def visualize_image_pairs(args):
                 cv2.namedWindow("image retrieval", cv2.WINDOW_NORMAL)
                 cv2.imshow("image retrieval", im_result)
                 cv2.waitKey(0)
-    statistics_analysis(image_pairs)
+    # statistics_analysis(image_pairs)
     print(f'nSuccess: {nSuccess} nFailure: {nFailure} precision {float(nSuccess)/float(len(image_pairs))} @top_{args.topk}')
 
 if __name__=='__main__':

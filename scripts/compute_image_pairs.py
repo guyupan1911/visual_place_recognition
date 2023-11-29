@@ -77,7 +77,7 @@ def compute_image_pairs(mapping_path: str,
         )
         mapping_list = specified_camera_id(camera_id, 
                         list(sorted(mapping_global_features_to_filepaths.items())))
-        # print(f'mapping_list size: {len(mapping_list)}')
+        print(f'mapping_list size: {len(mapping_list)}')
         
         mapping_stacked_features = stack_global_features(global_features_config, mapping_list)
 
