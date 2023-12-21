@@ -1,4 +1,4 @@
-data/
+/data
 thirdParty/
 **/__pycache__
 .vscode/
