@@ -18,18 +18,70 @@ D[4] = 0.6
 
 print(f'K: {K}, \nD: {D}')
 
-def drawlines(img1,img2,lines,pts1,pts2):
-    ''' img1 - image on which we draw the epilines for the points in img2
-        lines - corresponding epilines '''
-    r,h,c = img1.shape
-    for r,pt1,pt2 in zip(lines,pts1,pts2):
-        color = tuple(np.random.randint(0,255,3).tolist())
-        x0,y0 = map(int, [0, -r[2]/r[1] ])
-        x1,y1 = map(int, [c, -(r[2]+r[0]*c)/r[1] ])
-        img1 = cv2.line(img1, (int(x0),int(y0)), (int(x1),int(y1)), color,1)
-        img1 = cv2.circle(img1,tuple(pt1),5,color,-1)
-        img2 = cv2.circle(img2,tuple(pt2),5,color,-1)
-    return img1,img2
+def CheckFundamental(pts1, pts2, F12):
+    f11 = F12[0][0]
+    f12 = F12[0][1]
+    f13 = F12[0][2]
+    f21 = F12[1][0]
+    f22 = F12[1][1]
+    f23 = F12[1][2]
+    f31 = F12[2][0]
+    f32 = F12[2][1]
+    f33 = F12[2][2]
+
+    score = 0
+    N = len(pts1)
+    nInliers = 0
+    for i in range(N):
+        u1 = pts1[i][0]
+        v1 = pts1[i][1]
+        u2 = pts2[i][0]
+        v2 = pts2[i][1]
+
+        # Reprojection error in second image
+        # l2=F21x1=(a2,b2,c2)
+
+        a2 = f11*u1+f12*v1+f13
+        b2 = f21*u1+f22*v1+f23
+        c2 = f31*u1+f32*v1+f33
+
+        num2 = a2*u2+b2*v2+c2
+
+        squareDist1 = num2*num2/(a2*a2+b2*b2)
+
+        if squareDist1 > 9.0:
+            continue
+
+        # Reprojection error in second image
+        # l1 =x2tF21=(a1,b1,c1)
+
+        a1 = f11*u2+f21*v2+f31
+        b1 = f12*u2+f22*v2+f32
+        c1 = f13*u2+f23*v2+f33
+
+        num1 = a1*u1+b1*v1+c1
+
+        squareDist2 = num1*num1/(a1*a1+b1*b1)
+        if squareDist2 > 9.0:
+            continue
+
+        # print(f'squareDist1: {squareDist1}, squareDist2: {squareDist2}')
+        nInliers += 1
+        score = score + squareDist1 + squareDist2
+    print(f'nInliers: {nInliers}')
+    return score / nInliers
+
+def CheckHomography(pts1, pts2, H12):
+    h11 = H12[0][0]
+    h12 = H12[0][1]
+    h13 = H12[0][2]
+    h21 = H12[1][0]
+    h22 = H12[1][1]
+    h23 = H12[1][2]
+    h31 = H12[2][0]
+    h32 = H12[2][1]
+    h33 = H12[2][2]
+
 
 if __name__=='__main__':
     im1 = cv2.imread('sfm/data/indoor/query.png')
@@ -38,17 +90,17 @@ if __name__=='__main__':
     im1 = cv2.undistort(im1, K, D)
     im2 = cv2.undistort(im2, K, D)
 
-    # imshow = cv2.hconcat([im0, im1], 1)
-    # cv2.namedWindow('undistorted image', cv2.WINDOW_NORMAL)
-    # cv2.imshow('undistorted image', imshow)
-    # cv2.waitKey(0)
+    imshow = cv2.hconcat([im1, im2], 1)
+    cv2.namedWindow('undistorted image', cv2.WINDOW_NORMAL)
+    cv2.imshow('undistorted image', imshow)
+    cv2.waitKey(0)
     
     # extract features
     feature_extractor = cv2.SIFT.create(2000)
     kpts1, desc1 = feature_extractor.detectAndCompute(im1, None)
     kpts2, desc2 = feature_extractor.detectAndCompute(im2, None)
 
-    print(f'kpts: {type(kpts1[0])}, desc1: {desc1.shape}')
+    print(f'kpts: {type(kpts1[0].pt)}, desc1: {desc1.shape}')
 
     # feature match
     bf_matcher = cv2.BFMatcher(cv2.NORM_L2)
@@ -69,26 +121,14 @@ if __name__=='__main__':
     print(f'good matches: {len(good_matches)}')
 
     # find ego motion
-    F, Fmask = cv2.findFundamentalMat(pts1, pts2, cv2.FM_RANSAC, 3, 0.999, 100)
-    print(f'F: {F}, mask: {Fmask.shape}')
 
-    # im_good_matches = cv2.drawMatches(im1, kpts1, im2, kpts2, good_matches, None, flags=2,
-    #     matchesMask = mask)
-    # cv2.namedWindow('good matches', cv2.WINDOW_NORMAL)
-    # cv2.imshow('good matches', im_good_matches)
-    # cv2.waitKey(0)
+    # epipolar geometry
+    # F, Fmask = cv2.findFundamentalMat(pts1, pts2, cv2.FM_RANSAC, 3, 0.999, 2000)
+    # print(f'F: {F}, mask: {Fmask.shape}')
 
-    # draw epipolar line
-    lines1 = cv2.computeCorrespondEpilines(pts2, 2,F)
-    lines1 = lines1.reshape(-1,3)
-    im1,im2 = drawlines(im1,im2,lines1,pts1,pts2)
-    # Find epilines corresponding to points in left image (first image) and
-    # drawing its lines on right image
-    lines2 = cv2.computeCorrespondEpilines(pts1, 1,F)
-    lines2 = lines2.reshape(-1,3)
-    im1,im2 = drawlines(im2,im1,lines2,pts2,pts1)
+    # score = CheckFundamental(pts1, pts2, F)
+    # print(f'score: {score}')
 
-    im_epipolar_lines = cv2.hconcat([im, im2])
-    cv2.namedWindow('epipolar lines', cv2.WINDOW_NORMAL)
-    cv2.imshow('epipolar lines', im_epipolar_lines)
-    cv2.waitKey(0)
+    # homography transform
+    H, mask = cv2.findHomography(pts1, pts2, method=cv2.RANSAC)
+    print(f'H: {H}')
